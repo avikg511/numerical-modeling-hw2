@@ -8,7 +8,7 @@ $$ \frac{\partial^2 x}{\partial t^2} = - \sin x$$
 using Forward Euler,, Implicit Euler with a predictor corrector test step, Semi-implicit Euler with the predictor-corrector test step, Leapfrog, and the 4th-order Runge-Kutta. Then given some initial conditions, we'll plot the approximations, plot the errors, computation times, and test the effects of varying timesteps.
 
 ## Overview of the Code
-There is a main.cpp file that runs everything, and then a LAPendulumModels class that contains much of the code (defined in models.cpp). A few heads-ups:
+There is a main.cpp file that runs everything, and then a LAPendulumModels class that contains much of the code (defined in Models.cpp). A few heads-ups:
 
 1. C++ plotting is not as common as it is in Python, so we use LAPendulumModels::outputData() to output the data to a csv file, before we use a terminal utility called gnuplot to plot them.
 	1. To plot with gnuplot, type in gnuplot (install with brew gnuplot, etc.)
