@@ -18,3 +18,4 @@ There is a main.cpp file that runs everything, and then a LAPendulumModels class
 	1. As far as understanding the modeling, probably ignore CMakeLists.txt
 1. To use the code, you can clone the repo, and then make a build directory. Then run cmake, and then make. This should (theoretically) pop out an executable you can run with the command './LAPendulumModel.out' or '.exe', depending on the OS.
  
+Run the code with ./build.sh. Part of me has given up on cross compatibility so I've just made one for OSX/Unix. Also, this script includes gnuplot, which is the terminal utility I'm using to graph things. This system would probably just break if gnuplot wasn't installed, so just try out a quick 'brew install gnuplot' on OSX (or 'sudo apt install gnuplot' for UNIX) if you want to run it!

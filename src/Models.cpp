@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 
 /*
     Constructor: Defines timestep, duration, and initializes the vectors with length duration / timestep and our given initial values.
@@ -74,4 +75,126 @@ void LAPendulumModels::outputData() {
     std::cout << "EOF reached\n";
     myFile.close();
     return;
+}
+
+void LAPendulumModels::outputData(std::filesystem::path fileName) {
+    assert(fileName.extension() == ".csv");
+    std::ofstream myFile (fileName);
+    
+    for (int i = 0; i < x1Data.size(); i++) {
+        if (x1Data.at(i) != NAN) {
+            myFile << i * dt << "," << x1Data.at(i) << "\n";
+        } else {
+            std::cout << "EOF reached or NAN values stored at end of vector\n";
+            myFile.close();
+            return;
+        }
+    }
+    std::cout << "EOF reached\n";
+    myFile.close();
+    return;
+}
+
+void LAPendulumModels::calcFE() {
+    double x1NPlus1;
+    double x2NPlus1;
+    
+    std::vector<double>::iterator x1Iter;
+    std::vector<double>::iterator x2Iter;
+    
+    /*
+     The below for loop is a bit confusing, so here's some added help.
+     
+     We are calculating x1NPlus1, x2NPlus2 and putting that in the vector.
+     Iterators are at the next element after the beginning (line 1 of for loop), and we're incrementing both (line 2 of for loop), and then incrementing them (line 3 of for loop).
+     
+     n is the index just like the math. Since our iterator points to the (n+1)th element, we can find the nth elements of the arrays and use them.
+     */
+    int n = 0;
+    for ( x1Iter = std::next(x1Data.begin()), x2Iter = std::next(x2Data.begin());
+                (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
+                 x1Iter++, x2Iter++, n++ ) 
+    {
+        x1NPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
+        x2NPlus1 = x2Data.at(n) - sin(x1Data.at(n)) * dt;
+        
+        *x1Iter = x1NPlus1;
+        *x2Iter = x2NPlus1;
+    }
+}
+void LAPendulumModels::calcIEPredCorr() {
+    double x1TestNPlus1;
+    double x1NPlus1;
+    double x2NPlus1;
+    
+    std::vector<double>::iterator x1Iter;
+    std::vector<double>::iterator x2Iter;
+    
+    int n = 0;
+    for ( x1Iter = std::next(x1Data.begin()), x2Iter = std::next(x2Data.begin());
+                (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
+                 x1Iter++, x2Iter++, n++ )
+    {
+        x1TestNPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
+        
+        x2NPlus1 = x2Data.at(n) - sin(x1TestNPlus1) * dt;
+        x1NPlus1 = x1Data.at(n) + x2NPlus1 * dt;
+        
+        *x1Iter = x1NPlus1;
+        *x2Iter = x2NPlus1;
+    }
+}
+void LAPendulumModels::calcSIEPredCorr() {
+    double x1TestNPlus1;
+    double x1NPlus1;
+    double x2NPlus1;
+    
+    std::vector<double>::iterator x1Iter;
+    std::vector<double>::iterator x2Iter;
+    
+    int n = 0;
+    for ( x1Iter = std::next(x1Data.begin()), x2Iter = std::next(x2Data.begin());
+                (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
+                 x1Iter++, x2Iter++, n++ )
+    {
+        x1TestNPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
+        
+        x2NPlus1 = x2Data.at(n) - ( sin(x1Data.at(n)) + sin(x1TestNPlus1) ) * dt / 2;
+        x1NPlus1 = x1Data.at(n) + (x2NPlus1 + x2Data.at(n)) * dt / 2;
+        
+        *x1Iter = x1NPlus1;
+        *x2Iter = x2NPlus1;
+    }
+}
+void LAPendulumModels::calcLFrog() {
+    double x1NPlus1;
+    double x2NPlus1;
+    
+    std::vector<double>::iterator x1Iter;
+    std::vector<double>::iterator x2Iter;
+    
+    int n = 0;
+    
+//    First iteration with FE
+    x1NPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
+    x2NPlus1 = x2Data.at(n) - sin(x1Data.at(n)) * dt;
+    
+//    Add FE values to array and adjust n for the for loop
+    *std::next(x1Data.begin()) = x1NPlus1;
+    *std::next(x2Data.begin()) = x2NPlus1;
+    n++;
+    
+    for ( x1Iter = std::next(x1Data.begin(), 2), x2Iter = std::next(x2Data.begin(), 2);
+                (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
+                 x1Iter++, x2Iter++, n++ )
+    {
+        x1NPlus1 = x1Data.at(n - 1) + 2 * x2Data.at(n) * dt;
+        x2NPlus1 = x2Data.at(n - 1) - 2 * sin(x1Data.at(n)) * dt;
+        
+        *x1Iter = x1NPlus1;
+        *x2Iter = x2NPlus1;
+    }
+}
+void LAPendulumModels::calcFourthRungeKutta() {
+    
 }

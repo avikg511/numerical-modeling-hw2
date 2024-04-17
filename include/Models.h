@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include <filesystem>
 
 /*
     Class Description: LAPendulumModels (Large Amplitude Penulum Models), models referring to the numerical models that will be used to solve the problem. We'll be solving x'' = -sin(x).
@@ -43,19 +44,20 @@ class LAPendulumModels {
 private:
     double dt;
     int dur;
+    std::vector<double> x1Data;
+    std::vector<double> x2Data;
 public:
     LAPendulumModels(double timestep, int duration, double initX, double initXPrime);
     void setTimestep(double timestep);
     void setDuration(double duration);
-    std::string getModelParams();
-    std::vector<double> x1Data;
-    std::vector<double> x2Data;
     void calcFE();
     void calcIEPredCorr();
     void calcSIEPredCorr();
     void calcLFrog();
     void calcFourthRungeKutta();
     void outputData();
+    void outputData(std::filesystem::path fileName);
+    std::string getModelParams();
 };
 
 
