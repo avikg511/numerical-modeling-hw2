@@ -9,16 +9,18 @@ using Forward Euler,, Implicit Euler with a predictor corrector test step, Semi-
 
 ## Overview of the Code
 ### Directory
-├── CMakeLists.     <br />
-├── LICENSE         <br />
-├── README.md       <br />
-├── build.sh        <br />
-├── include         <br />
-│   └── Models.h   <br />
-├── no_plot_build.h <br />
-└── src             <br />
-    ├── Models.     <br />cpp
-    └── main.       <br />cpp
+```
+├── CMakeLists.     
+├── LICENSE         
+├── README.md       
+├── build.sh        
+├── include         
+│  └── Models.h    
+├── no_plot_build.h 
+└── src             
+    ├── Models.cpp  
+    └── main.cpp    
+```
 
 There is a main.cpp file that runs everything, and then a LAPendulumModels class that contains much of the code (defined in Models.cpp). A few heads-ups:
 
