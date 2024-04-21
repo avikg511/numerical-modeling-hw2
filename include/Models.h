@@ -41,13 +41,11 @@
 
 */
 class LAPendulumModels {
-private:
-    double dt;
-    int dur;
+public:
+    LAPendulumModels(const double timestep, const int duration, double initX, double initXPrime);
     std::vector<double> x1Data;
     std::vector<double> x2Data;
-public:
-    LAPendulumModels(double timestep, int duration, double initX, double initXPrime);
+    std::vector<double> timeSeries;
     void setTimestep(double timestep);
     void setDuration(double duration);
     void calcFE();
@@ -55,9 +53,16 @@ public:
     void calcSIEPredCorr();
     void calcLFrog();
     void calcFourthRungeKutta();
-    void outputData();
-    void outputData(std::filesystem::path fileName);
+    void exportData();
+    void exportData(std::filesystem::path fileName);
+    double calculateRMSWRTGT(LAPendulumModels& groundTruth);
+    LAPendulumModels interpolate(LAPendulumModels& groundTruth);
     std::string getModelParams();
+
+    double dt;
+    int dur;
+    double x1Init;
+    double x2Init;
 };
 
 
