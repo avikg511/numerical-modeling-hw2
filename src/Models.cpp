@@ -130,11 +130,6 @@ void LAPendulumModels::calcFE() {
     *x2Data.begin() = x2Init;
     
     /*
-     The below for loop is a bit confusing, so here's some added help.
-     
-     We are calculating x1NPlus1, x2NPlus2 and putting that in the vector.
-     Iterators are at the next element after the beginning (line 1 of for loop), and we're incrementing both (line 2 of for loop), and then incrementing them (line 3 of for loop).
-     
      n is the index just like the math. Since our iterator points to the (n+1)th element, we can find the nth elements of the arrays and use them.
      */
     int n = 0;
@@ -142,9 +137,11 @@ void LAPendulumModels::calcFE() {
                 (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
                  x1Iter++, x2Iter++, n++ ) 
     {
+        // FE Step
         x1NPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
         x2NPlus1 = x2Data.at(n) - sin(x1Data.at(n)) * dt;
         
+        // Storing the data
         *x1Iter = x1NPlus1;
         *x2Iter = x2NPlus1;
     }
@@ -166,11 +163,14 @@ void LAPendulumModels::calcIEPredCorr() {
                 (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
                  x1Iter++, x2Iter++, n++ )
     {
+        // FE step, predictor corrector
         x1TestNPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
         
+        // IE step
         x2NPlus1 = x2Data.at(n) - sin(x1TestNPlus1) * dt;
         x1NPlus1 = x1Data.at(n) + x2NPlus1 * dt;
         
+        // Storing the data
         *x1Iter = x1NPlus1;
         *x2Iter = x2NPlus1;
     }
@@ -192,11 +192,14 @@ void LAPendulumModels::calcSIEPredCorr() {
                 (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
                  x1Iter++, x2Iter++, n++ )
     {
+        // Predictor Corrector
         x1TestNPlus1 = x1Data.at(n) + x2Data.at(n) * dt;
         
+        // Semi-Implicit Euler
         x2NPlus1 = x2Data.at(n) - ( sin(x1Data.at(n)) + sin(x1TestNPlus1) ) * dt / 2;
         x1NPlus1 = x1Data.at(n) + (x2NPlus1 + x2Data.at(n)) * dt / 2;
         
+        // Storing Data
         *x1Iter = x1NPlus1;
         *x2Iter = x2NPlus1;
     }
@@ -227,9 +230,11 @@ void LAPendulumModels::calcLFrog() {
                 (x1Iter != x1Data.end()) || (x2Iter != x2Data.end());
                  x1Iter++, x2Iter++, n++ )
     {
+        // Calcuate LFrog
         x1NPlus1 = x1Data.at(n - 1) + 2 * x2Data.at(n) * dt;
         x2NPlus1 = x2Data.at(n - 1) - 2 * sin(x1Data.at(n)) * dt;
         
+        // Store values
         *x1Iter = x1NPlus1;
         *x2Iter = x2NPlus1;
     }
@@ -298,6 +303,7 @@ double LAPendulumModels::calculateRMSWRTGT(LAPendulumModels& groundTruth) {
     
     double error = 0;
     for (int i = 0; i < interpolatedGT.x1Data.size(); i++) {
+        // Calculate RMS error and return the sum
         error += std::pow((interpolatedGT.x1Data.at(i) - this->x1Data.at(i)), 2);
     }
 
@@ -305,19 +311,24 @@ double LAPendulumModels::calculateRMSWRTGT(LAPendulumModels& groundTruth) {
 }
 
 LAPendulumModels LAPendulumModels::interpolate(LAPendulumModels& groundTruth) {
+    // Indices are an vector where index i of the vector refers to j, where i is the location of j as well as the model place j refers to. j instead refers to a location on the ground truth array that has the interpolated values.
     std::vector<int> indices (this->x1Data.size(), NAN);
     double curTime = 0;
-
     double newError = 0.0f;
+
     indices[0] = 0;
     for (int i = 1; i < this->x1Data.size(); i++) {
         curTime = i * this->dt;
+        
+        // Find lowest timestep that is greater than our current time
         auto it = std::lower_bound(groundTruth.timeSeries.begin(), groundTruth.timeSeries.end(), curTime);
+
+        // The correct index would be one less than the greater than.
         indices[i] = std::distance(groundTruth.timeSeries.begin(), it) - 1;
         newError += abs(this->timeSeries[i] - groundTruth.timeSeries.at(indices[i] - 1));
     }
 
-
+    // Stores data in vector called interpolatedData and returns a new instance with this data.
     std::vector<double> interpolatedData;
     std::transform(indices.begin(), indices.end(),
                  std::back_inserter(interpolatedData),
@@ -326,6 +337,5 @@ LAPendulumModels LAPendulumModels::interpolate(LAPendulumModels& groundTruth) {
     LAPendulumModels interpGT = LAPendulumModels(groundTruth);
     interpGT.x1Data = interpolatedData;
     interpGT.timeSeries = this->timeSeries;
-    // TODO: You maybe shouldn't be able to change params without updating the entire instance, will make the data really just invalid
     return interpGT;
 }
